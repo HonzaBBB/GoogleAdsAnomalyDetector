@@ -15,7 +15,7 @@
  * Run from MCC (Manager) account - iterates through all defined accounts.
  * 
  * @version 3.0
- * @author Your Name
+ * @author Honza Brzák PPC Freelancer
  * @license MIT
  * 
  * Setup:
