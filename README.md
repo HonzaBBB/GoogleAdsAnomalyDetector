@@ -1,214 +1,214 @@
-# Google Ads Campaign Monitoring Script
+# Google Ads Anomaly Detector
 
-Automatizovaný monitorovací systém pro Google Ads kampaně s podporou více účtů, sledováním budgetu a emailovými alerty.
+MCC-level Google Ads Script that monitors multiple accounts for common issues and sends alerts.
 
-## Funkce
+## Features
 
-### Monitoring stavu kampaní
-- ✅ **Detekce Zero Impressions** - Alert když kampaň nemá žádné zobrazení po dobu 7 dní
-- ✅ **Detekce Zero Clicks** - Alert když kampaň má zobrazení, ale žádné kliky
-- ✅ **Podpora Performance Max** - Plný monitoring PMax kampaní
-- ✅ **Filtrování Experimentů** - Automaticky vyřazuje experimentální kampaně
+- **Zero Impressions/Clicks Detection** - Campaigns not serving
+- **Budget Lost Impression Share** - Campaigns losing traffic due to budget
+- **Campaign Status Issues** - Budget/bidding constrained campaigns
+- **Budget Spend Monitoring with Trend Tracking** - Projected over/underspend with trend analysis
+- **PNO Monitoring** - Cost-to-revenue ratio alerts
+- **Policy Checks** - Disapproved ads, keywords, and assets
+- **Conversion Tracking Issues** - High spend with zero conversions
+- **RSA Ad Strength** - Alerts for POOR ad strength
+- **Quality Score** - Low QS keyword detection (optional)
 
-### Monitoring Budgetu
-- 💰 **Lost Impression Share** - Sleduje ztrátu impression share kvůli budgetu (>10%)
-- 💰 **Detekce Statusu Kampaní** - Identifikuje kampaně omezené rozpočtem nebo bidding strategií
-- 💰 **Měsíční Budget Tracking** - Monitoruje utrácení vs. očekávaný budget per účet
-  - Alert při nízkém utrácení (<60%)
-  - Varování při vysokém utrácení (>90%)
-  - Kritický alert při přečerpání (>100%)
+## Setup
 
-### Monitoring Výkonu
-- 📊 **Sledování PNO** (Podíl Nákladů na Obratu)
-  - Per-kampaň monitoring za 30 dní
-  - Konfigurovatelné prahy per účet
+### 1. Create Google Sheet
+
+Create a new Google Sheet for logging. The script will automatically create headers on first run.
+
+### 2. Configure the Script
+
+Update the `CONFIG` section:
+
+```javascript
+const CONFIG = {
+  // Your Google Sheet URL
+  SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit',
   
-
-## Úrovně Závažnosti
-
-| Závažnost | Barva | Použití |
-|----------|-------|---------|
-| 🔴 **CRITICAL** | Červená | Zero impressions, přečerpání budgetu >100% |
-| 🟠 **HIGH** | Oranžová | Zero clicks, omezení budgetem, budget >90%, PNO >150% max |
-| 🟡 **MEDIUM** | Žlutá | Omezení bidding strategií, nízké utrácení <60%, PNO >100% max |
-| 🟢 **INFO** | Zelená | Lost impression share kvůli budgetu |
-
-## Požadavky
-
-- Přístup k Google Ads Manager účtu (MCC)
-- Autorizace Google Ads Scripts
-- Google Sheet pro logování
-- Emailová adresa pro alerty
-
-## Instalace
-
-1. **Vytvoř Google Sheet**
-   - Vytvoř nový Google Sheet pro logování
-   - Zkopíruj URL
-
-2. **Vytvoř Google Ads Script**
-   - Jdi do Google Ads → Nástroje → Skripty
-   - Klikni "+" pro vytvoření nového scriptu
-   - Vlož kód scriptu
-   - Pojmenuj ho (např. "Campaign Monitor")
-
-3. **Nakonfiguruj Script**
-   - Uprav CONFIG sekci (viz Konfigurace níže)
-
-4. **Autorizuj**
-   - Klikni "Náhled" pro autorizaci scriptu
-   - Uděl potřebná oprávnění
-
-5. **Nastav Trigger**
-   - Jdi do Skripty → vyber svůj script
-   - Klikni "Spravovat" → "Spouštěče"
-   - Vytvoř denní trigger (doporučeno: 9-10 ráno)
-
-## Konfigurace
-
-### 1. Základní Nastavení
-```javascript
-const SPREADSHEET_URL = 'TVOJE_GOOGLE_SHEET_URL';
-const EMAIL = 'tvuj-email@example.com';
-
-const MONITORED_ACCOUNTS = [
-  '123-456-7890', // Účet 1
-  '234-567-8901', // Účet 2
-  '345-678-9012'  // Účet 3
-];
-```
-
-### 2. Monitoring Budgetu (Volitelné)
-```javascript
-const MONTHLY_BUDGETS = {
-  '123-456-7890': 10000, // Účet 1 - 10 000 Kč/měsíc
-  '234-567-8901': 8000   // Účet 2 - 8 000 Kč/měsíc
-  // Účty, které tu nejsou, nebudou monitorovány
-};
-
-const BUDGET_THRESHOLDS = {
-  UNDERSPEND_WARNING: 60,  // Alert pokud utrácení <60%
-  OVERSPEND_WARNING: 90,   // Alert pokud utrácení >90%
-  OVERSPEND_CRITICAL: 100  // Kritický pokud utrácení >100%
+  // Your email for alerts
+  EMAIL: 'your-email@example.com',
+  
+  // Account IDs to monitor (without dashes)
+  MONITORED_ACCOUNTS: [
+    '1234567890',
+    '2345678901',
+  ],
+  
+  // Monthly budgets (optional)
+  MONTHLY_BUDGETS: {
+    '1234567890': 10000,
+    '2345678901': 5000,
+  },
+  
+  // Max PNO per account (optional)
+  MAX_PNO: {
+    '1234567890': 0.25,  // 25% = ROAS 400%
+  },
+  
+  // ... other settings
 };
 ```
 
-### 3. Monitoring PNO (Volitelné)
+### 3. Deploy to MCC
+
+1. Go to your MCC account → Tools & Settings → Bulk Actions → Scripts
+2. Create new script
+3. Paste the code
+4. Authorize the script
+5. Schedule to run daily
+
+## Configuration Options
+
+### Budget Thresholds
+
 ```javascript
-const MAX_PNO = {
-  '123-456-7890': 0.25,  // Účet 1 - max 25% PNO (ROAS 4)
-  '234-567-8901': 0.30   // Účet 2 - max 30% PNO (ROAS 3.33)
-  // Účty, které tu nejsou, nebudou monitorovány
-};
+BUDGET_THRESHOLDS: {
+  UNDERSPEND_WARNING: 60,   // Alert if projected < 60%
+  OVERSPEND_WARNING: 90,    // Alert if projected > 90%
+  OVERSPEND_CRITICAL: 100   // Critical if projected > 100%
+}
 ```
 
-**Výpočet PNO:**
-```
-PNO = Náklady / Obrat
-ROAS = Obrat / Náklady = 1 / PNO
+### Trend Tracking
 
-Příklad: PNO 25% = ROAS 400
-```
-
-## Výstupy
-
-### Google Sheet
-- Automatické logování s barevným kódováním podle závažnosti
-- Sloupce: Date, Time, Account, Customer ID, Campaign, Issue, Detail, Severity
-- Denní "All OK" záznamy když nejsou žádné problémy
-
-### Emailové Alerty
-- Posílají se pouze když jsou detekovány problémy
-- Přehled všech problémů s úrovněmi závažnosti
-- Link na kompletní report v Google Sheet
-
-## Monitorovací Období
-
-| Kontrola | Období | Poznámky |
-|----------|--------|----------|
-| Zero Impressions/Clicks | 7 dní | Per kampaň |
-| Lost Impression Share | 7 dní | Per kampaň, práh >10% |
-| Status Kampaně | 7 dní | Aktuální status check |
-| Utrácení Budgetu | 30 dní | Celkem za účet vs. očekávané |
-| PNO | 30 dní | Per kampaň s konverzemi |
-
-## Řešení Problémů
-
-### Script Timeout
-Pokud monitoruješ mnoho účtů/kampaní:
-- Rozděl do více scriptů podle skupin účtů
-- Zkrať monitorovací období (např. 3 dny místo 7)
-
-### Chybějící Data
-- **Budget data**: Ujisti se, že kampaně jsou aktivní v daném období
-- **PNO data**: Vyžaduje nastavené sledování konverzí
-- **Status data**: Zkontroluj API oprávnění
-
-### Email Nepřišel
-- Zkontroluj spam složku
-- Ověř emailovou adresu v configu
-- Potvrď že script běžel úspěšně (zkontroluj execution log)
-
-## Přizpůsobení
-
-### Přidání Vlastních Kontrol
-Přidej nové monitorovací funkce podle tohoto vzoru:
 ```javascript
-function checkCustomMetric(accountName, customerId, issues) {
-  Logger.log('  -> Checking custom metric...');
-  
-  // Tvůj GAQL query
-  const query = `SELECT ... FROM campaign WHERE ...`;
-  const report = AdsApp.report(query);
-  
-  // Zpracuj výsledky a přidej do issues pole
-  issues.push({
-    account: accountName,
-    customerId: customerId,
-    campaign: 'Název Kampaně',
-    issue: 'Typ Problému',
-    detail: 'Detailní popis',
-    severity: 'MEDIUM'
-  });
+TREND_TRACKING: {
+  ENABLED: true,
+  REDUCE_SEVERITY_ON_POSITIVE_TREND: true,  // Lower severity if trend is improving
+  SIGNIFICANT_TREND_PCT: 10                  // Threshold for "significant" trend
+}
+```
+
+### Policy Checks
+
+```javascript
+POLICY_CHECKS: {
+  ENABLED: true,
+  IGNORED_ACCOUNTS: ['1234567890'],     // Skip specific accounts
+  IGNORED_CAMPAIGNS: ['Test Campaign'],  // Skip specific campaigns
+  IGNORED_ISSUE_TYPES: ['DISAPPROVED_AD'] // Skip specific issue types
+}
+```
+
+### Optional Checks
+
+```javascript
+// Conversion tracking (alerts when high spend + 0 conversions)
+CONVERSION_CHECK: {
+  ENABLED: true,
+  MIN_SPEND_FOR_ALERT: 1000,
+  LOOKBACK_DAYS: 14
 }
 
-// Přidej do main():
-checkCustomMetric(accountName, customerId, issues);
+// Ad strength check
+AD_STRENGTH_CHECK: {
+  ENABLED: true,
+  ALERT_ON: ['POOR'],
+  IGNORED_CAMPAIGNS: []
+}
+
+// Quality Score (off by default - can be noisy)
+QS_CHECK: {
+  ENABLED: false,
+  MIN_QS_THRESHOLD: 5,
+  MIN_IMPRESSIONS: 100
+}
 ```
 
-### Úprava Prahů
-Uprav prahy závažnosti v CONFIG sekci podle svých potřeb.
+## Severity Levels
 
-## Best Practices
+| Level | Description | Color |
+|-------|-------------|-------|
+| CRITICAL | Campaign not serving, severe overspend | Red |
+| HIGH | Budget constrained, high overspend, no conversions | Orange |
+| MEDIUM | Underspend, bidding constrained, PNO warning | Yellow |
+| INFO | Lost IS, weak ad strength, low QS | Green |
 
-1. **Testuj Nejdřív** - Spusť manuálně a ověř výsledky před nastavením denního triggeru
-2. **Začni Jednoduše** - Zapni základní monitoring nejdřív, budget/PNO monitoring přidej později
-3. **Pravidelně Kontroluj** - Zkontroluj Google Sheet týdně, jestli monitoring funguje
-4. **Uprav Prahy** - Dolaď podle specifických potřeb svých kampaní
-5. **Dokumentuj Změny** - Veď si přehled o změnách konfigurace pro své účty
+## Output
 
-## API Reference
+### Google Sheet
 
-Script používá:
-- Google Ads Scripts API
-- Google Apps Script (Sheets, Mail)
-- GAQL (Google Ads Query Language)
+The script logs all issues to the configured Google Sheet with:
+- Date/Time
+- Account Name
+- Customer ID
+- Campaign
+- Issue Type
+- Detail
+- Severity
 
-## Přispívání
+Rows are color-coded by severity.
 
-Neváhej poslat issues nebo pull requesty pro vylepšení.
+### Email Alerts
 
-## Licence
+When issues are found, an email is sent with:
+- Summary counts by severity
+- Issues grouped by severity (CRITICAL → INFO)
+- Link to full report in Google Sheet
 
-MIT License - klidně používej a upravuj pro své potřeby.
+## Customization
 
-## Podpora
+### Adding New Accounts
 
-Pro dotazy nebo problémy:
-1. Zkontroluj sekci Řešení Problémů
-2. Projdi Google Ads Scripts dokumentaci
-3. Otevři issue na GitHubu
+Add the Customer ID (without dashes) to `MONITORED_ACCOUNTS`:
 
----
+```javascript
+MONITORED_ACCOUNTS: [
+  '1234567890',
+  '9876543210',  // New account
+],
+```
 
-**Poznámka:** Tento script monitoruje kampaně napříč více účty. Ujisti se, že máš odpovídající přístupová práva ke všem monitorovaným účtům.
+### Adding Budget Monitoring
+
+Add the monthly budget to `MONTHLY_BUDGETS`:
+
+```javascript
+MONTHLY_BUDGETS: {
+  '1234567890': 10000,
+  '9876543210': 15000,  // New account budget
+},
+```
+
+### Adding PNO Monitoring
+
+Add the max PNO to `MAX_PNO`:
+
+```javascript
+MAX_PNO: {
+  '1234567890': 0.25,  // 25% PNO = 400% ROAS
+  '9876543210': 0.20,  // 20% PNO = 500% ROAS
+},
+```
+
+## Troubleshooting
+
+### Script Not Running
+
+- Check MCC account permissions
+- Verify account IDs are correct (no dashes)
+- Check script authorization
+
+### No Email Alerts
+
+- Verify EMAIL is configured correctly
+- Check MailApp quota limits
+- Look for errors in script logs
+
+### Sheet Not Updating
+
+- Verify SPREADSHEET_URL is correct
+- Check sheet sharing permissions
+- Ensure script has edit access
+
+## License
+
+MIT License - feel free to modify and use as needed.
+
+## Contributing
+
+Pull requests welcome! Please test changes thoroughly before submitting.
